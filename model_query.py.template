@@ -1,0 +1,34 @@
+#! /usr/bin/env python3
+
+import time
+import json
+import requests
+
+class FailedQueryError(Exception):
+    def get_err_msg(self):
+        return str(self)
+
+# Mock Adapter
+def query_model(prompt, max_resp_tokens):
+    for i in range(max_resp_tokens):
+        time.sleep(0.01)
+        yield '测试'
+
+# # Adapter for huggingface Text-Generation-Inference
+# def query_model(prompt, max_resp_tokens):
+#     service_url = 'http://127.0.0.1:8080/generate_stream'
+#     param_dict = {'inputs': prompt, 'parameters': {'max_new_tokens': max_resp_tokens, 'details': True}}
+#     try:
+#         response = requests.post(url=service_url, json=param_dict, stream=True)
+#         for line in response.iter_lines(chunk_size = 8000):
+#             if not line.startswith(b'data:'):
+#                 continue
+#             line_json = json.loads(line[5:])
+#             token_text = line_json["token"]["text"]
+#             if not line_json["token"]["special"]:
+#                 yield token_text
+#     except Exception as e:
+#         raise FailedQueryError(str(e))
+
+if __name__ == '__main__':
+    print('Use $python3 executor.py to test your query_model function')

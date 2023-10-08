@@ -1,0 +1,5 @@
+512|USER: 为一篇写关于尼古拉·特斯拉及其技术贡献的文章创建一个大纲 ASSISTANT:
+512|USER: 我要采访一位科幻作家，创建一个包含10个问题的列表 ASSISTANT:
+512|USER: 写一些 VR 和健身结合的方案 ASSISTANT:
+512|USER: 根据这些笔记写一篇餐厅评论： 餐厅名称：The Blue Wharf Lobster 很棒，很吵，服务很有礼貌，价格不错。 ASSISTANT:
+512|USER: 晚上睡不着应该怎么办 ASSISTANT:

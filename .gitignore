@@ -51,3 +51,4 @@ docs/_build/
 
 resources/
 output/
+model_query.py
