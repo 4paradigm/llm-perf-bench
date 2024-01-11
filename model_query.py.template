@@ -9,10 +9,10 @@ class FailedQueryError(Exception):
         return str(self)
 
 # Mock Adapter
-# def query_model(prompt, max_resp_tokens):
-#     for i in range(max_resp_tokens):
-#         time.sleep(0.01)
-#         yield '测试'
+def query_model(prompt, max_resp_tokens):
+    for i in range(max_resp_tokens):
+        time.sleep(0.01)
+        yield '测试'
 
 # # Adapter for huggingface Text-Generation-Inference
 # def query_model(prompt, max_resp_tokens):
@@ -48,9 +48,9 @@ class FailedQueryError(Exception):
 #    except Exception as e:
 #        raise FailedQueryError(str(e))
 
-# # Adapter for OpenAPI Chat Completions API
+# # Adapter for OpenAI Chat Completions API
 # from openai import OpenAI
-
+#
 # def query_model(prompt, max_resp_tokens):
 #     client = OpenAI(
 #         base_url="http://127.0.0.1:8085/v1",
