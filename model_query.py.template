@@ -30,7 +30,7 @@ def query_model(prompt, max_resp_tokens):
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
-# # Adapter for OpenAPI (Completions API Legacy)
+# # Adapter for OpenAI (Completions API Legacy)
 #def query_model(prompt, max_resp_tokens):
 #    service_url = 'http://127.0.0.1:8085/v1/completions'
 #    param_dict = {'model': 'baichuan', 'prompt': prompt, 'max_tokens': 512, 'temperature': 0, 'stream': True}
@@ -56,18 +56,21 @@ def query_model(prompt, max_resp_tokens):
 #         base_url="http://127.0.0.1:8085/v1",
 #         api_key="x",
 #     )
-#     stream = client.chat.completions.create(
-#         model="qwen-7b-chat",
-#         max_tokens=max_resp_tokens,
-#         messages=[
-#             # {"role": "system", "content": "You are a helpful assistant."},
-#             {"role": "user", "content": prompt}
-#         ],
-#         stream=True,
-#         stop="<|endoftext|>",
-#     )
-#     for chunk in stream:
-#         yield (chunk.choices[0].delta.content)
+#     try:
+#         stream = client.chat.completions.create(
+#             model="qwen-7b-chat",
+#             max_tokens=max_resp_tokens,
+#             messages=[
+#                 # {"role": "system", "content": "You are a helpful assistant."},
+#                 {"role": "user", "content": prompt}
+#             ],
+#             stream=True,
+#             stop="<|endoftext|>",
+#         )
+#         for chunk in stream:
+#             yield (chunk.choices[0].delta.content)
+#     except Exception as e:
+#         raise FailedQueryError(str(e))
 
 if __name__ == '__main__':
     print('Use $python3 executor.py to test your query_model function')
