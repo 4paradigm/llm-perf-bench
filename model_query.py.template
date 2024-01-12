@@ -50,7 +50,7 @@ def query_model(prompt, max_resp_tokens):
 
 # # Adapter for OpenAI Chat Completions API
 # from openai import OpenAI
-#
+
 # def query_model(prompt, max_resp_tokens):
 #     client = OpenAI(
 #         base_url="http://127.0.0.1:8085/v1",
@@ -68,7 +68,12 @@ def query_model(prompt, max_resp_tokens):
 #             stop="<|endoftext|>",
 #         )
 #         for chunk in stream:
-#             yield (chunk.choices[0].delta.content)
+#             if not chunk.choices[0].finish_reason:
+#                 # in case of empty returns
+#                 token_text = chunk.choices[0].delta.content or ""
+#                 yield token_text 
+#             else:
+#                 break
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
