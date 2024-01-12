@@ -30,7 +30,7 @@ def query_model(prompt, max_resp_tokens):
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
-# # Adapter for OpenAI (Completions API Legacy)
+# # Adapter for OpenAPI (Completions API Legacy)
 #def query_model(prompt, max_resp_tokens):
 #    service_url = 'http://127.0.0.1:8085/v1/completions'
 #    param_dict = {'model': 'baichuan', 'prompt': prompt, 'max_tokens': 512, 'temperature': 0, 'stream': True}
@@ -68,7 +68,11 @@ def query_model(prompt, max_resp_tokens):
 #             stop="<|endoftext|>",
 #         )
 #         for chunk in stream:
-#             yield (chunk.choices[0].delta.content)
+#             if not chunk.choices[0].finish_reason:
+#                 token_text = chunk.choices[0].delta.content
+#                 yield (token_text or "") # in case of empty returns
+#             else:
+#                 break
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
