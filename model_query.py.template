@@ -48,9 +48,8 @@ def query_model(prompt, max_resp_tokens):
 #    except Exception as e:
 #        raise FailedQueryError(str(e))
 
-# # Adapter for OpenAI Chat Completions API
+# # Adapter for OpenAI Chat Completions API (Streaming)
 # from openai import OpenAI
-
 # def query_model(prompt, max_resp_tokens):
 #     client = OpenAI(
 #         base_url="http://127.0.0.1:8085/v1",
@@ -65,7 +64,7 @@ def query_model(prompt, max_resp_tokens):
 #                 {"role": "user", "content": prompt}
 #             ],
 #             stream=True,
-#             stop="<|endoftext|>",
+#             stop=["<|im_end|>","<|endoftext|>"],
 #         )
 #         for chunk in stream:
 #             if not chunk.choices[0].finish_reason:
@@ -74,6 +73,26 @@ def query_model(prompt, max_resp_tokens):
 #                 yield token_text 
 #             else:
 #                 break
+#     except Exception as e:
+#         raise FailedQueryError(str(e))
+
+# # Adapter for OpenAI Chat Completions API
+# from openai import OpenAI
+# def query_model(prompt, max_resp_tokens):
+#     client = OpenAI(
+#         base_url="http://127.0.0.1:8085/v1",
+#         api_key="x",
+#     )
+#     try:
+#         response = client.chat.completions.create(
+#             model="qwen-7b-chat",
+#             max_tokens=max_resp_tokens,
+#             messages=[
+#                 {"role": "user", "content": prompt}
+#             ],
+#             stop=["<|im_end|>","<|endoftext|>"],
+#         )
+#         yield response.choices[0].message.content
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
