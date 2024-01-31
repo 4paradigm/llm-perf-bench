@@ -96,5 +96,20 @@ def query_model(prompt, max_resp_tokens):
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
+# Adapter for tensorRT-llm + triton-server 
+# def query_model(prompt, max_resp_tokens):
+#     service_url = 'http://127.0.0.1:8000/v2/models/ensemble/generate_stream'
+#     param_dict = {"text_input": prompt, "max_tokens": max_resp_tokens, "bad_words": "", "stop_words": "", "end_id": [151643], "pad_id": [151643], "stream":True}
+#     try:
+#         response = requests.post(url=service_url, json=param_dict, stream=True)
+#         for line in response.iter_lines(chunk_size = 8000):
+#             if not line.startswith(b'data:'):
+#                 continue
+#             line_json = json.loads(line[5:])
+#             token_text = line_json["text_output"]
+#             yield token_text
+#     except Exception as e:
+#         raise FailedQueryError(str(e))
+
 if __name__ == '__main__':
     print('Use $python3 executor.py to test your query_model function')
