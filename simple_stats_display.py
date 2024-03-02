@@ -27,9 +27,10 @@ class SimpleStatsDisplay(threading.Thread):
             total_time = record["ts_token"][-1]
             query['resp_len'] = sum(len(t) for t in record["tokens"])
             if len(record["tokens"]) > 1:
-                query['output_speed'] = query['resp_len'] / (total_time - query['queue_time'])
+                output_time = total_time - query['queue_time']
             else:
-                query['output_speed'] = query['resp_len'] / query['queue_time']
+                output_time = total_time
+            query['output_speed'] = query['resp_len'] / output_time
             queries = self._history["queries"]
             queries.append(query)
             while len(queries) > 500:

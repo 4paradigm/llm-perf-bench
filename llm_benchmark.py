@@ -54,8 +54,8 @@ def main(test_name, test_description, test_set_path, working_dir, test_duration,
     test_info['benchmark_ver'] = benchmark_ver
     args_str = json.dumps(test_info, default=str, ensure_ascii=False)
 
-    print('[INFO] LLM throughput benchmark. Args %s\n' % args_str)
-    for test_no, num_threads in enumerate(test_info["test_runs"], 1):    
+    print('[INFO] LLM throughput benchmark. Args %s\n' % args_str[:10000])
+    for test_no, num_threads in enumerate(test_info["test_runs"], 1):
         test_info['num_threads'] = num_threads
         print('[INFO] test-%d/%d: Starting test run...' % (test_no, len(test_info["test_runs"])))
         print('[INFO] LLM throughput test started with %d thread(s)' % test_info["num_threads"])
