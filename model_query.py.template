@@ -25,7 +25,7 @@ def query_model(prompt, max_resp_tokens):
 #                 continue
 #             line_json = json.loads(line[5:])
 #             token_text = line_json["token"]["text"]
-#             if not line_json["token"]["special"]:
+#             if token_text and not line_json["token"]["special"]:
 #                 yield token_text
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
@@ -41,7 +41,7 @@ def query_model(prompt, max_resp_tokens):
 #                continue
 #            line_json = json.loads(line[5:])
 #            token_text = line_json["choices"][0]["text"]
-#            if not line_json["choices"][0]["finish_reason"]:
+#            if token_text and not line_json["choices"][0]["finish_reason"]:
 #                yield token_text
 #            else:
 #                break
@@ -69,8 +69,9 @@ def query_model(prompt, max_resp_tokens):
 #         for chunk in stream:
 #             if not chunk.choices[0].finish_reason:
 #                 # in case of empty returns
-#                 token_text = chunk.choices[0].delta.content or ""
-#                 yield token_text 
+#                 token_text = chunk.choices[0].delta.content
+#                 if token_text:
+#                     yield token_text
 #             else:
 #                 break
 #     except Exception as e:
@@ -92,7 +93,9 @@ def query_model(prompt, max_resp_tokens):
 #             ],
 #             stop=["<|im_end|>","<|endoftext|>"],
 #         )
-#         yield response.choices[0].message.content
+#         token_text = response.choices[0].message.content
+#         if token_text:
+#             yield token_text
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
@@ -107,7 +110,8 @@ def query_model(prompt, max_resp_tokens):
 #                 continue
 #             line_json = json.loads(line[5:])
 #             token_text = line_json["text_output"]
-#             yield token_text
+#             if token_text:
+#                 yield token_text
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
