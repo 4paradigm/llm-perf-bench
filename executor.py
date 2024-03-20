@@ -26,6 +26,8 @@ class Executor(threading.Thread):
         ret["tokens"] = []
         try:
             for token in self._query_model_func(prompt, max_resp_tokens):
+                if not isinstance(token, str):
+                    raise FailedQueryError("tokens should be strings")
                 ret["ts_token"].append(time.time() - ts)
                 ret["tokens"].append(token)
             if not ret["tokens"]:
@@ -49,4 +51,5 @@ if __name__ == '__main__':
     prompt, max_resp_tokens = ('晚上睡不着应该怎么办', 512)
     executor = Executor('offline-executor-thread', None, None, None)
     record = executor._exec_query(prompt, max_resp_tokens)
+    print(''.join(record["tokens"]))
     print(record)

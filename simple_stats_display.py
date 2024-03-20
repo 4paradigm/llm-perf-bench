@@ -20,6 +20,7 @@ class SimpleStatsDisplay(threading.Thread):
         self._history["num_queries"] += 1
         if not record["success"]:
             self._history["num_failed_queries"] += 1
+            print('    Query Failed: %s' % record["err_msg"])
         self._history['active_threads'].add(record["tid"])
         if record["success"]:
             query = {"time": time.time()}
