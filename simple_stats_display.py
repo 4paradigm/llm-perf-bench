@@ -88,9 +88,11 @@ class SimpleStatsDisplay(threading.Thread):
             if (queries[0]["usage"]):
                 throughput_token = total_completion_token / total_time
                 throughput_str = '%.1f 字/秒 %.1f Token/秒' % (throughput, throughput_token) if total_time > 100 or len(queries) > 100 else '统计中'
-                stats_str += '[平均延迟] %.1f秒 \n' % avg_queue_time
-                stats_str += '[出字均速] 每秒%.1f字 \t 每秒%.1fToken \n' % (avg_output_speed, ave_token_speed)       
-                stats_str += '[总吞吐] %s' % throughput_str
+                stats_str += '[平均延迟] \t %.1f秒 \n' % avg_queue_time
+                stats_str += '[出字均速] \t 每秒%.1f字 \t 每秒%.1fToken \n' % (avg_output_speed, ave_token_speed)       
+                stats_str += '[总吞吐] \t %s \n' % throughput_str
+                stats_str += '[提示token数] \t min: %d \t ave: %d \t max: %d \n' % (min_prompt_token, ave_prompt_token, max_prompt_token)
+                stats_str += '[生成token数] \t min: %d \t ave: %d \t max: %d \n' % (min_completion_token, ave_completion_token, max_completion_token)
             else:
                 throughput_str = '%.1f 字/秒' % throughput if total_time > 100 or len(queries) > 100 else '统计中'
                 stats_str += '[平均延迟] %.1f秒 [出字均速] 每秒%.1f字 ' % (avg_queue_time, avg_output_speed)
