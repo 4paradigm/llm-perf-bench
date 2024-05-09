@@ -12,7 +12,7 @@ class FailedQueryError(Exception):
 def query_model(prompt, max_resp_tokens):
     for i in range(max_resp_tokens):
         time.sleep(0.01)
-        yield '测试'
+        yield '测试', None
 
 # # Adapter for huggingface Text-Generation-Inference
 # def query_model(prompt, max_resp_tokens):
@@ -26,7 +26,7 @@ def query_model(prompt, max_resp_tokens):
 #             line_json = json.loads(line[5:])
 #             token_text = line_json["token"]["text"]
 #             if token_text and not line_json["token"]["special"]:
-#                 yield token_text
+#                 yield token_text, None
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
@@ -42,7 +42,7 @@ def query_model(prompt, max_resp_tokens):
 #            line_json = json.loads(line[5:])
 #            token_text = line_json["choices"][0]["text"]
 #            if token_text and not line_json["choices"][0]["finish_reason"]:
-#                yield token_text
+#                yield token_text, None
 #            else:
 #                break
 #    except Exception as e:
@@ -71,7 +71,7 @@ def query_model(prompt, max_resp_tokens):
 #                 # in case of empty returns
 #                 token_text = chunk.choices[0].delta.content
 #                 if token_text:
-#                     yield token_text
+#                     yield token_text, None
 #             else:
 #                 break
 #     except Exception as e:
@@ -95,7 +95,7 @@ def query_model(prompt, max_resp_tokens):
 #         )
 #         token_text = response.choices[0].message.content
 #         if token_text:
-#             yield token_text
+#             yield token_text, None
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
@@ -111,7 +111,64 @@ def query_model(prompt, max_resp_tokens):
 #             line_json = json.loads(line[5:])
 #             token_text = line_json["text_output"]
 #             if token_text:
-#                 yield token_text
+#                 yield token_text, None
+#     except Exception as e:
+#         raise FailedQueryError(str(e))
+
+
+# Adapter for OpenAI Chat Completions API (Streaming with usage)
+# from openai import OpenAI
+# def query_model(prompt, max_resp_tokens):
+#     client = OpenAI(
+#         base_url="http://127.0.0.1:7879/v1",
+#         api_key="x",
+#     )
+#     try:
+#         stream = client.chat.completions.create(
+#             model="Qwen1.5-7B-Chat",
+#             max_tokens=max_resp_tokens,
+#             messages=[
+#                 # {"role": "system", "content": "You are a helpful assistant."},
+#                 {"role": "user", "content": prompt}
+#             ],
+#             stream=True,
+#             stream_options={"include_usage": True},
+#             # stop=["<|im_end|>","<|endoftext|>"],
+#         )
+#         for chunk in stream:
+#             token_text = chunk.choices[0].delta.content
+#             usage = chunk.usage
+#             if not chunk.choices[0].finish_reason:
+#                 # in case of empty returns
+#                 if token_text:
+#                     yield token_text, usage
+#             else:
+#                 if usage:
+#                     yield token_text, usage
+#                 break
+#     except Exception as e:
+#         raise FailedQueryError(str(e))
+
+# Adapter for OpenAI Chat Completions API (Non-Streaming with usage)
+# from openai import OpenAI
+# def query_model(prompt, max_resp_tokens):
+#     client = OpenAI(
+#         base_url="http://127.0.0.1:7879/v1",
+#         api_key="x",
+#     )
+#     try:
+#         response = client.chat.completions.create(
+#             model="Qwen1.5-7B-Chat",
+#             max_tokens=10,
+#             messages=[
+#                 {"role": "user", "content": prompt}
+#             ],
+#             # stop=["<|im_end|>","<|endoftext|>"],
+#         )
+#         token_text = response.choices[0].message.content
+#         usage = response.usage
+#         if token_text:
+#             yield token_text, usage
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 

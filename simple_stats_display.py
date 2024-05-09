@@ -32,6 +32,12 @@ class SimpleStatsDisplay(threading.Thread):
             else:
                 output_time = total_time
             query['output_speed'] = query['resp_len'] / output_time
+            query['usage'] = False
+            if (record['usage']):
+                query['usage'] = True
+                query["completion_tokens"] = record["completion_tokens"]
+                query["prompt_tokens"] = record["prompt_tokens"]
+                query['token_speed'] = query['completion_tokens'] / output_time
             queries = self._history["queries"]
             queries.append(query)
             while len(queries) > 500:
@@ -56,17 +62,42 @@ class SimpleStatsDisplay(threading.Thread):
         num_active_threads = len(self._history["active_threads"])
         num_queries = self._history["num_queries"]
         num_failed_queries = self._history["num_failed_queries"]
-        stats_str += '[并发] %d [问答/错误] %d/%d ' % (num_active_threads, num_queries, num_failed_queries)
+        stats_str += '[并发] %d [问答/错误] %d/%d \n' % (num_active_threads, num_queries, num_failed_queries)
         queries = self._history["queries"]
         if len(queries) > 1:
             avg_queue_time = mean(q["queue_time"] for q in queries)
             avg_output_speed = mean(q["output_speed"] for q in queries)
+
+            if (queries[0]["usage"]):
+                ave_token_speed = mean(q["token_speed"] for q in queries)
+
+                min_prompt_token = min(q["prompt_tokens"] for q in queries)
+                ave_prompt_token = mean(q["prompt_tokens"] for q in queries)
+                max_prompt_token = max(q["prompt_tokens"] for q in queries)
+
+                min_completion_token = min(q["completion_tokens"] for q in queries)
+                ave_completion_token = mean(q["completion_tokens"] for q in queries)
+                max_completion_token = max(q["completion_tokens"] for q in queries)
+
+                total_completion_token = sum(q["completion_tokens"] for q in queries)
+
             total_resp_len = sum(q["resp_len"] for q in queries)
             total_time = time.time() - queries[0]["time"]
             throughput = total_resp_len / total_time
-            stats_str += '[平均延迟] %.1f秒 [出字均速] 每秒%.1f字 ' % (avg_queue_time, avg_output_speed)
-            throughput_str = '%.1f 字/秒' % throughput if total_time > 100 or len(queries) > 100 else '统计中'
-            stats_str += '[总吞吐] %s' % throughput_str
+            
+            if (queries[0]["usage"]):
+                throughput_token = total_completion_token / total_time
+                throughput_str = '%.1f 字/秒 %.1f Token/秒' % (throughput, throughput_token) if total_time > 100 or len(queries) > 100 else '统计中'
+                stats_str += '[平均延迟] \t %.1f秒 \n' % avg_queue_time
+                stats_str += '[出字均速] \t 每秒%.1f字 \t 每秒%.1fToken \n' % (avg_output_speed, ave_token_speed)       
+                stats_str += '[总吞吐] \t %s \n' % throughput_str
+                stats_str += '[提示token数] \t min: %d \t ave: %d \t max: %d \n' % (min_prompt_token, ave_prompt_token, max_prompt_token)
+                stats_str += '[生成token数] \t min: %d \t ave: %d \t max: %d \n' % (min_completion_token, ave_completion_token, max_completion_token)
+            else:
+                throughput_str = '%.1f 字/秒' % throughput if total_time > 100 or len(queries) > 100 else '统计中'
+                stats_str += '[平均延迟] %.1f秒 [出字均速] 每秒%.1f字 ' % (avg_queue_time, avg_output_speed)
+                stats_str += '[总吞吐] %s' % throughput_str
+
         print(stats_str)
 
     def run(self):

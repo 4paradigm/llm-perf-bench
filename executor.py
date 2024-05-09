@@ -24,12 +24,18 @@ class Executor(threading.Thread):
         ret["time"] = datetime.datetime.fromtimestamp(ts)
         ret["ts_token"] = []
         ret["tokens"] = []
+        ret["usage"] = False
         try:
-            for token in self._query_model_func(prompt, max_resp_tokens):
+            for token, usage in self._query_model_func(prompt, max_resp_tokens):
                 if not isinstance(token, str):
                     raise FailedQueryError("tokens should be strings")
                 ret["ts_token"].append(time.time() - ts)
                 ret["tokens"].append(token)
+                if (usage):
+                    ret['usage'] = True
+                    ret["completion_tokens"] = usage.completion_tokens
+                    ret["total_tokens"] = usage.total_tokens
+                    ret["prompt_tokens"] = usage.prompt_tokens
             if not ret["tokens"]:
                 raise FailedQueryError("response without valid token")
             ret["success"] = True
