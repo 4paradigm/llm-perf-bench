@@ -58,3 +58,34 @@ llm-perf-benchmark 是一个针对大语言模型多用户推理服务的性能�
 
 4. 对应输出的测试结果在$work_dir/output目录下
 
+### 新增 ceval 数据集
+
+1. 新数据为多轮对话形式, 参考以下用法:
+
+   ```python
+    def query_model(prompt, max_resp_tokens):
+
+        #service_url = 'http://0.0.0.0:30000/v1/chat/completions'
+        msgs = json.loads(prompt)
+        param_dict = {"model": "qwen", "messages": msgs, "stream": True, "stop": "<JFSTOP>", "max_tokens": max_resp_tokens, "temperature": 0.001, "top_p": 0.8}
+        try:
+            response = requests.post(url=service_url, json=param_dict, stream=True)
+            for line in response.iter_lines(chunk_size = 128):
+                if not line.startswith(b'data:'):
+                    continue
+                try:
+                    line_json = json.loads(line[5:])
+                    token_text = line_json["choices"][0]["delta"].get("content")
+                    if token_text:
+                        yield token_text
+                except json.JSONDecodeError:
+                    pass
+        except Exception as e:
+            print(e)
+            raise FailedQueryError(str(e))
+   ```
+
+### 已知问题
+
+1. 当并发数量较高(比如大于100以上时), 如果使用openai的client进行发压会观测到实际请求数量没有达到设定值,建议使用requests直接发压.
+
