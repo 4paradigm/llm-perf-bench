@@ -70,8 +70,6 @@ def query_model(prompt, max_resp_tokens):
 #                 token_text = chunk.choices[0].delta.content
 #                 if token_text:
 #                     yield token_text
-#             else:
-#                 break
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
