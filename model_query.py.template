@@ -43,8 +43,6 @@ def query_model(prompt, max_resp_tokens):
 #            token_text = line_json["choices"][0]["text"]
 #            if token_text and not line_json["choices"][0]["finish_reason"]:
 #                yield token_text
-#            else:
-#                break
 #    except Exception as e:
 #        raise FailedQueryError(str(e))
 
