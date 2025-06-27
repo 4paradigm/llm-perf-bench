@@ -46,6 +46,8 @@ def query_model(prompt, max_resp_tokens):
 #    except Exception as e:
 #        raise FailedQueryError(str(e))
 
+
+# 注意：使用openai client在高并发下会有明显的性能衰减，暂时不明原因
 # # Adapter for OpenAI Chat Completions API (Streaming)
 # from openai import OpenAI
 # def query_model(prompt, max_resp_tokens):
@@ -73,6 +75,7 @@ def query_model(prompt, max_resp_tokens):
 #     except Exception as e:
 #         raise FailedQueryError(str(e))
 
+# 注意：使用openai client在高并发下会有明显的性能衰减，暂时不明原因
 # # Adapter for OpenAI Chat Completions API
 # from openai import OpenAI
 # def query_model(prompt, max_resp_tokens):
