@@ -14,6 +14,39 @@ def query_model(prompt, max_resp_tokens):
         time.sleep(0.01)
         yield '测试'
 
+def prepare_messages(prompt):
+    try:
+        # 尝试解析成 JSON
+        parsed = json.loads(prompt)
+        # 判断是不是符合 messages 格式（list + dict里面有role和content）
+        if isinstance(parsed, list) and all(isinstance(msg, dict) and 'role' in msg and 'content' in msg for msg in parsed):
+            return parsed  # 是标准messages格式
+    except (json.JSONDecodeError, TypeError):
+        pass
+    # 如果解析失败或者格式不对，当作一句话文本
+    return [{'role': 'user', 'content': prompt}]
+
+# def query_model(service_url, prompt, max_resp_tokens):
+#     msgs = prepare_messages(prompt)
+
+#     param_dict = {"model": "public/deepseek", "messages": msgs, "stream": True, "stop": "<JFSTOP>", "max_tokens": max_resp_tokens, "temperature": 0.001, "top_p": 0.8}
+#     try:
+#         response = requests.post(url=service_url, json=param_dict, stream=True)
+#         for line in response.iter_lines(chunk_size = 128):
+#             if not line.startswith(b'data:'):
+#                 continue
+#             try:
+#                 line_json = json.loads(line[5:])
+#                 token_text = line_json["choices"][0]["delta"].get("content")
+#                 if token_text:
+#                     yield token_text
+#             except json.JSONDecodeError:
+#                 pass
+#     except Exception as e:
+#         print(e)
+#         raise FailedQueryError(str(e))
+
+
 # # Adapter for huggingface Text-Generation-Inference
 # def query_model(prompt, max_resp_tokens):
 #     service_url = 'http://127.0.0.1:8080/generate_stream'
@@ -39,10 +72,13 @@ def query_model(prompt, max_resp_tokens):
 #        for line in response.iter_lines(chunk_size = 8000):
 #            if not line.startswith(b'data:'):
 #                continue
-#            line_json = json.loads(line[5:])
-#            token_text = line_json["choices"][0]["text"]
-#            if token_text and not line_json["choices"][0]["finish_reason"]:
-#                yield token_text
+#             try:
+#                 line_json = json.loads(line[5:])
+#                 token_text = line_json["choices"][0].get("text")
+#                 if token_text:
+#                     yield token_text
+#             except json.JSONDecodeError:
+#                 pass
 #    except Exception as e:
 #        raise FailedQueryError(str(e))
 
