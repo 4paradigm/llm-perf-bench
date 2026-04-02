@@ -22,6 +22,12 @@ def gen_test_id(test_name):
     return test_id
 
 def parse_testset(test_set_path):
+    if test_set_path.is_dir():
+        return {
+            "mode": "conversation_dir",
+            "samples": parse_conversation_dir(test_set_path),
+        }
+
     test_set = []
     with open(test_set_path, 'r') as f:
         for line in f:
@@ -31,7 +37,86 @@ def parse_testset(test_set_path):
             else:
                 prompt, resp_max_tokens = line, 512
             test_set.append((prompt, resp_max_tokens))
-    return test_set
+    return {"mode": "random_testset", "samples": test_set}
+
+
+def normalize_content(content):
+    if content is None:
+        return None
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+                continue
+            if not isinstance(item, dict):
+                continue
+            item_type = item.get("type")
+            if item_type in (None, "text", "input_text"):
+                text = item.get("text")
+                if isinstance(text, str) and text:
+                    parts.append(text)
+        merged = '\n'.join(p for p in parts if p.strip())
+        return merged or None
+    if isinstance(content, dict):
+        text = content.get("text")
+        if isinstance(text, str) and text:
+            return text
+    return str(content)
+
+
+def normalize_messages(raw_messages):
+    messages = []
+    for raw in raw_messages:
+        if not isinstance(raw, dict):
+            continue
+        role = raw.get("role")
+        if role not in {"system", "user", "assistant"}:
+            continue
+        content = normalize_content(raw.get("content"))
+        if not content:
+            continue
+        messages.append({"role": role, "content": content})
+    return messages
+
+
+def parse_conversation_file(file_path):
+    with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
+        data = json.load(f)
+
+    samples = []
+    if not isinstance(data, list):
+        return samples
+
+    for idx, item in enumerate(data):
+        if not isinstance(item, dict):
+            continue
+        messages = normalize_messages(item.get("messages") or [])
+        if not messages:
+            continue
+        parameters = item.get("parameters") or {}
+        max_tokens = parameters.get("max_tokens")
+        if max_tokens is None:
+            max_tokens = parameters.get("max_completion_tokens")
+        if max_tokens is None:
+            max_tokens = 512
+        samples.append({
+            "prompt": json.dumps(messages, ensure_ascii=False),
+            "max_resp_tokens": int(max_tokens),
+            "conversation_file": str(file_path),
+            "conversation_sample_index": idx,
+        })
+
+    return samples
+
+
+def parse_conversation_dir(test_set_path):
+    samples = []
+    for file_path in sorted(test_set_path.glob("*.json")):
+        samples.extend(parse_conversation_file(file_path))
+    return samples
 
 def run_test(test_info):
     throughput_test = LLMThroughputTest(test_info)
@@ -43,6 +128,7 @@ def main(test_name, test_description, test_set_path, working_dir, test_duration,
     test_info["test_description"] = test_description
     test_info["test_id"] = gen_test_id(test_name)
     test_info["test_set"] = parse_testset(test_set_path)
+    test_info["test_set_size"] = len(test_info["test_set"]["samples"])
     test_info["time_limit"] = test_duration
     test_info["working_dir"] = working_dir.resolve()
     test_info["test_runs"] = test_runs if test_runs else list(gen_test_runs())
@@ -50,7 +136,13 @@ def main(test_name, test_description, test_set_path, working_dir, test_duration,
     output_dir_base.mkdir(exist_ok=True)
     test_info['output_dir'] = output_dir_base / test_info["test_id"]
     test_info['output_dir'].mkdir()
-    benchmark_ver = subprocess.check_output(['git', 'describe', '--tags', '--dirty', '--long']).decode('ascii').strip()
+    try:
+        benchmark_ver = subprocess.check_output(
+            ['git', 'describe', '--tags', '--dirty', '--long'],
+            stderr=subprocess.DEVNULL,
+        ).decode('ascii').strip()
+    except subprocess.CalledProcessError:
+        benchmark_ver = "unknown"
     test_info['benchmark_ver'] = benchmark_ver
     args_str = json.dumps(test_info, default=str, ensure_ascii=False)
 
