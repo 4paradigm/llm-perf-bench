@@ -15,6 +15,7 @@ TEMPERATURE = float(os.environ.get("LLM_PERF_TEMPERATURE", "0.0"))
 TOP_P = float(os.environ.get("LLM_PERF_TOP_P", "1.0"))
 CONNECT_TIMEOUT = float(os.environ.get("LLM_PERF_CONNECT_TIMEOUT", "10"))
 READ_TIMEOUT = float(os.environ.get("LLM_PERF_READ_TIMEOUT", "600"))
+MAX_TOKENS_CAP = int(os.environ.get("LLM_PERF_MAX_TOKENS_CAP", "0"))
 
 
 class FailedQueryError(Exception):
@@ -144,6 +145,8 @@ def try_chat_completions_api(messages, max_resp_tokens, headers):
 
 
 def query_model(prompt, max_resp_tokens):
+    if MAX_TOKENS_CAP > 0:
+        max_resp_tokens = min(max_resp_tokens, MAX_TOKENS_CAP)
     messages = prepare_messages(prompt)
     headers = {
         "Authorization": f"Bearer {API_KEY}",
