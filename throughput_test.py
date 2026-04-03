@@ -18,7 +18,8 @@ class LLMThroughputTest():
         self._q_logger = Queue()
         self._q_stat = Queue()
         # Threads related objects
-        num_threads = self._test_info["num_threads"]
+        num_threads = self._effective_num_threads()
+        self._test_info["effective_num_threads"] = num_threads
         self._se_exec = [Event() for x in range(num_threads)]
         self._se_logger = Event()
         self._se_stat = Event()
@@ -42,13 +43,52 @@ class LLMThroughputTest():
             return False
         return True
 
+    def _effective_num_threads(self):
+        requested = self._test_info["num_threads"]
+        test_set = self._test_info["test_set"]
+        if test_set["mode"] != "conversation_dir":
+            return requested
+        samples = test_set["samples"]
+        if not samples:
+            return 0
+        return min(requested, len(samples))
+
+    def _split_samples_for_threads(self):
+        samples = self._test_info["test_set"]["samples"]
+        num_threads = self._test_info["effective_num_threads"]
+        if num_threads == 0:
+            return []
+        chunk_size = (len(samples) + num_threads - 1) // num_threads
+        thread_samples = []
+        for idx in range(num_threads):
+            start = idx * chunk_size
+            end = min(start + chunk_size, len(samples))
+            thread_samples.append(samples[start:end])
+        return thread_samples
+
     def _create_executor_threads(self):
         t_exec = []
-        num_threads = self._test_info["num_threads"]
+        num_threads = self._test_info["effective_num_threads"]
+        test_set = self._test_info["test_set"]
+
+        if test_set["mode"] == "conversation_dir":
+            thread_samples = self._split_samples_for_threads()
+            for i in range(num_threads):
+                thread_id = "T-%03d" % i
+                workload = {
+                    "mode": "conversation_dir",
+                    "samples": thread_samples[i],
+                }
+                t_exec.append(Executor(thread_id, self._se_exec[i], workload, self._q_exec))
+            return t_exec
+
         for i in range(num_threads):
             thread_id = "T-%03d" % i
-            test_set = self._test_info["test_set"]
-            t_exec.append(Executor(thread_id, self._se_exec[i], test_set, self._q_exec))
+            workload = {
+                "mode": "random_testset",
+                "samples": test_set["samples"],
+            }
+            t_exec.append(Executor(thread_id, self._se_exec[i], workload, self._q_exec))
         return t_exec
 
     def _start_all_threads(self):
